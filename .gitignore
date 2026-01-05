@@ -22,3 +22,17 @@ venv/
 .env
 
 *.csv
+
+# Coursework & documents
+*.pdf
+*.html
+
+# Logs & images
+*.png
+
+# Notebooks
+*.ipynb
+.ipynb_checkpoints/
+
+# Mac
+.DS_Store
