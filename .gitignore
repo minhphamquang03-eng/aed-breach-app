@@ -20,3 +20,5 @@ patient_system_audit.log
 .venv/
 venv/
 .env
+
+*.csv
