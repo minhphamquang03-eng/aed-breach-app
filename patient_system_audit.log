@@ -1,0 +1,12 @@
+2026-01-02 12:29:21,221 - INFO - Program exited by user.
+2026-01-02 12:31:28,833 - INFO - Modified patient ID P10054: Breachornot changed from non-breach to breach
+2026-01-02 12:35:49,390 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-3' coro=<Kernel.poll_control_queue() running at /Users/spearxz/anaconda3/lib/python3.11/site-packages/ipykernel/kernelbase.py:290> wait_for=<Future pending cb=[Task.task_wakeup()]> cb=[_chain_future.<locals>._call_set_state() at /Users/spearxz/anaconda3/lib/python3.11/asyncio/futures.py:394]>
+2026-01-02 12:36:33,192 - INFO - Retrieved patient ID P10046
+2026-01-02 12:36:54,178 - INFO - Filtered patients on Age between 4.0 and 54.0
+2026-01-02 12:37:18,322 - INFO - Deleted patient ID P10065
+2026-01-02 12:37:55,892 - INFO - Retrieved patient ID P10765
+2026-01-02 12:38:36,271 - INFO - Retrieved patient ID P10545
+2026-01-02 12:38:54,725 - INFO - Filtered patients on Age between 34.0 and 36.0
+2026-01-02 12:39:11,472 - INFO - Modified patient ID P10545: Age changed from 33 to 54
+2026-01-02 12:39:20,485 - INFO - Deleted patient ID P10043
