@@ -169,7 +169,8 @@ st.set_page_config(page_title="Patient Data Manager", layout="wide")
 # -------------------- DATA LOADING --------------------
 @st.cache_data
 def load_data():
-    return pd.read_csv("AED4weeks.csv")
+    return pd.read_csv("AED4weeks.csv.gz", compression="gzip")
+
 
 df_original = load_data()
 
