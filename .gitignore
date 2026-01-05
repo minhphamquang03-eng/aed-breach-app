@@ -1,0 +1,22 @@
+# macOS
+.DS_Store
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Notebooks
+*.ipynb
+
+# Logs
+*.log
+audit_log.txt
+patient_system_audit.log
+
+# Images (bỏ nếu app không dùng ảnh)
+*.png
+
+# Optional: local env
+.venv/
+venv/
+.env
