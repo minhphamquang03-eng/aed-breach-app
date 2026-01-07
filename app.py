@@ -790,6 +790,7 @@ else:
     skill_map_ui = build_skill_map(st.session_state["skill_df"], skills)
 
     other_params = {
+        "opt_mode": str(opt_mode),
         "coverage_per_day": int(coverage_per_day),
         "min_week": {o: int(min_week[o]) for o in ops},
         "wage_ui": {o: float(wage_ui[o]) for o in ops},
