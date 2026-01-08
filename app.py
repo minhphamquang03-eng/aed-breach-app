@@ -991,7 +991,7 @@ else:
         # -------------------------
         # Layout: chart LEFT, table RIGHT
         # -------------------------
-        col_chart, col_table = st.columns([3, 2])
+        col_chart, col_table = st.columns([4, 3])
 
         # -------------------------
         # Chart (LEFT)
@@ -1098,6 +1098,11 @@ else:
                 frameon=False
             )
             st.pyplot(fig2)
+
+        #numerical vs numericl: 
+        #numerical vs categorical:
+        #categorical vs categorical:
+
 
 
         
