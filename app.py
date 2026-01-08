@@ -357,6 +357,7 @@ if app_mode == "AED":
     with col_left1:
         st.markdown("#### 📦 Numeric vs Breach")
         breach_col_name = "Breachornot"
+
         if breach_col_name not in df_viz.columns:
             st.warning("Breachornot column not found.")
         else:
@@ -365,16 +366,50 @@ if app_mode == "AED":
             else:
                 num_var = st.selectbox("Select numeric variable", num_cols_viz, key="boxplot_num")
 
-                plot_df = df_viz[[num_var, breach_col_name]].dropna()
+                plot_df = df_viz[[num_var, breach_col_name]].dropna().copy()
                 if plot_df.empty:
                     st.warning("No data available after filtering.")
                 else:
-                    figB, axB = plt.subplots(figsize=(8, 4))
-                    sns.boxplot(data=plot_df, x=breach_col_name, y=num_var, ax=axB)
-                    axB.set_title(f"{num_var} by Breach Status")
-                    axB.set_xlabel("Breachornot (0 = No, 1 = Yes)")
-                    axB.set_ylabel(num_var)
-                    st.pyplot(figB)
+                    # --- make breach labels stable across environments ---
+                    # Handles 0/1, "0"/"1", "breach/non-breach", "Breach/Non-breach", etc.
+                    s = plot_df[breach_col_name]
+
+                    if pd.api.types.is_numeric_dtype(s):
+                        plot_df["Breach_label"] = s.astype(int).map({0: "non-breach", 1: "breach"})
+                    else:
+                        ss = s.astype(str).str.strip().str.lower()
+                        mapping = {
+                            "0": "non-breach", "no": "non-breach", "n": "non-breach",
+                            "non-breach": "non-breach", "nonbreach": "non-breach", "non breached": "non-breach",
+                            "1": "breach", "yes": "breach", "y": "breach",
+                            "breach": "breach", "breached": "breach"
+                        }
+                        plot_df["Breach_label"] = ss.map(mapping).fillna(ss)
+
+                    # keep only the two main groups (optional, but cleaner)
+                    plot_df = plot_df[plot_df["Breach_label"].isin(["non-breach", "breach"])]
+
+                    if plot_df.empty:
+                        st.warning("Breach labels could not be parsed into breach/non-breach.")
+                    else:
+                        # --- fixed order + fixed colors (stable on Streamlit Cloud) ---
+                        order = ["non-breach", "breach"]
+                        palette = {"non-breach": "#4C72B0", "breach": "#DD8452"}
+
+                        figB, axB = plt.subplots(figsize=(8, 4))
+                        sns.boxplot(
+                            data=plot_df,
+                            x="Breach_label",
+                            y=num_var,
+                            order=order,
+                            palette=palette,
+                            ax=axB
+                        )
+                        axB.set_title(f"{num_var} by Breach Status")
+                        axB.set_xlabel("Breach status")
+                        axB.set_ylabel(num_var)
+                        st.pyplot(figB)
+
     with col_right1:
         st.markdown("#### 📊 Categorical vs Breach ")
 
