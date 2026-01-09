@@ -287,25 +287,43 @@ if app_mode == "AED":
 
     # (1) TOP: Numeric distribution FULL WIDTH
     st.markdown("#### Numeric Variable Distribution ")
+    
+    plot_type = st.radio(
+        "Choose plot type",
+        ["Histogram/Bar", "Boxplot"],
+        horizontal=True,
+        key="num_dist_plot_type"
+    )
+
     if not num_cols_viz:
         st.warning("No numeric columns found (excluding Day/Period).")
     else:
         selected_num = st.selectbox("Select numeric variable", num_cols_viz, key="num_fullwidth")
         x = df_viz[selected_num].dropna()
-        if pd.api.types.is_integer_dtype(x) and x.nunique() <= 50:
-            counts = x.value_counts().sort_index()
-            figN, axN = plt.subplots(figsize=(10, 4))
-            axN.bar(counts.index.astype(int), counts.values, width=0.8, color = '#AB2346')
-            axN.set_xlabel(selected_num)
-            axN.set_ylabel("Frequency")
-            axN.set_xticks(counts.index.astype(int))
-            st.pyplot(figN)
-        else:
-            figN, axN = plt.subplots(figsize=(10, 4))
-            axN.hist(x, bins=20, color = '#AB2346')
-            axN.set_xlabel(selected_num)
-            axN.set_ylabel("Frequency")
-            st.pyplot(figN)
+
+        if plot_type == "Boxplot":
+            fig, ax = plt.subplots(figsize=(10, 3.5))
+            ax.boxplot(x.values, vert=False)
+            ax.set_xlabel(selected_num)
+            ax.set_title(f"Boxplot of {selected_num}")
+            st.pyplot(fig)
+
+        else:  # Histogram/Bar
+            if pd.api.types.is_integer_dtype(x) and x.nunique() <= 50:
+                counts = x.value_counts().sort_index()
+                fig, ax = plt.subplots(figsize=(10, 4))
+                ax.bar(counts.index.astype(int), counts.values, width=0.8, color="#AB2346")
+                ax.set_xlabel(selected_num)
+                ax.set_ylabel("Frequency")
+                ax.set_xticks(counts.index.astype(int))
+                st.pyplot(fig)
+            else:
+                fig, ax = plt.subplots(figsize=(10, 4))
+                ax.hist(x, bins=20, color="#AB2346")
+                ax.set_xlabel(selected_num)
+                ax.set_ylabel("Frequency")
+                st.pyplot(fig)
+
 
     st.divider()
 
@@ -433,7 +451,6 @@ if app_mode == "AED":
             else:
                 cat_pick = st.selectbox("Select categorical variable", cat_cols_stack, key="stack_cat")
 
-                # ✅ checkbox PHẢI ở trước (có key)
                 show_percent = st.checkbox("Show as % (normalized)", value=True, key="stack_pct")
 
                 # crosstab
@@ -493,6 +510,174 @@ if app_mode == "AED":
 
                 plt.xticks(rotation=45, ha="right")
                 st.pyplot(fig)
+
+    # =========================
+    # 🔁 Flexible 2-variable Explorer
+    # Rules:
+    #   numeric vs numeric      -> median line plot (+ IQR band)
+    #   numeric vs categorical  -> boxplot
+    #   categorical vs categorical -> heatmap (crosstab)
+    # =========================
+
+    st.divider()
+    st.subheader("🧪 Explore relationship between any 2 variables (except Breachornot)")
+
+    BREACH_COL = "Breachornot"
+    FORCE_CAT_COLS = [c for c in ["Day", "Period"] if c in df_viz.columns]  # df_viz is your filtered_df copy for viz
+
+    # Candidate columns (exclude ID & breach)
+    cand_cols = [c for c in df_viz.columns if c not in ["ID", BREACH_COL]]
+
+    if len(cand_cols) < 2:
+        st.warning("Not enough columns to compare.")
+    else:
+        colA, colB = st.columns(2)
+        with colA:
+            var_x = st.selectbox("Select variable X", cand_cols, index=0, key="rel_x")
+        with colB:
+            var_y = st.selectbox("Select variable Y", cand_cols, index=1, key="rel_y")
+
+        # --- helper: decide if a column should be treated as categorical for plotting ---
+        def is_cat_for_plot(dframe: pd.DataFrame, colname: str) -> bool:
+            if colname in FORCE_CAT_COLS:
+                return True
+            return (not pd.api.types.is_numeric_dtype(dframe[colname]))
+
+        x_is_cat = is_cat_for_plot(df_viz, var_x)
+        y_is_cat = is_cat_for_plot(df_viz, var_y)
+
+        # Data for plot (drop rows where either is missing)
+        plot_df = df_viz[[var_x, var_y]].dropna()
+        if plot_df.empty:
+            st.warning("No data available after filtering (all rows missing in selected variables).")
+        else:
+            # =========================
+        # 1) numeric vs numeric -> median line plot (+ IQR band)
+        #    FIX: if X is discrete integer with small #unique -> group by actual X values
+        # =========================
+            if (not x_is_cat) and (not y_is_cat):
+                st.markdown("#### 📈 Numeric vs Numeric: Median line plot (Y by X)")
+
+                x = pd.to_numeric(plot_df[var_x], errors="coerce")
+                y = pd.to_numeric(plot_df[var_y], errors="coerce")
+                tmp = pd.DataFrame({var_x: x, var_y: y}).dropna()
+
+                if tmp.empty:
+                    st.warning("Selected numeric variables cannot be converted to numeric for plotting.")
+                else:
+                    x_unique = tmp[var_x].nunique(dropna=True)
+
+                    # Heuristic: discrete integer-like and not too many unique values -> group by value
+                    is_int_like = (tmp[var_x] % 1 == 0).all()
+                    if is_int_like and x_unique <= 30:
+                        g = tmp.groupby(var_x)[var_y]
+                        med = g.median()
+                        q1 = g.quantile(0.25)
+                        q3 = g.quantile(0.75)
+
+                        xs = med.index.values  # actual X values (e.g., 0..6)
+                        fig, ax = plt.subplots(figsize=(10, 4))
+                        ax.plot(xs, med.values, marker="o", linewidth=2, label="Median")
+                        ax.fill_between(xs, q1.values, q3.values, alpha=0.25, label="IQR (25–75%)")
+                        ax.set_xlabel(var_x)
+                        ax.set_ylabel(var_y)
+                        ax.set_title(f"Median {var_y} across {var_x} (by value)")
+                        ax.set_xticks(sorted(xs))
+                        ax.legend(frameon=False)
+                        st.pyplot(fig)
+
+                    else:
+                        # Continuous X -> keep binned quantile trend
+                        bins = st.slider("Number of bins for X (for median trend)", 5, 30, 10, 1, key="nn_bins")
+                        try:
+                            tmp["_xbin"] = pd.qcut(tmp[var_x], q=bins, duplicates="drop")
+                        except Exception:
+                            tmp["_xbin"] = pd.cut(tmp[var_x], bins=bins)
+
+                        g = tmp.groupby("_xbin")[var_y]
+                        med = g.median()
+                        q1 = g.quantile(0.25)
+                        q3 = g.quantile(0.75)
+
+                        mids = [b.mid for b in med.index]
+                        fig, ax = plt.subplots(figsize=(10, 4))
+                        ax.plot(mids, med.values, marker="o", linewidth=2, label="Median")
+                        ax.fill_between(mids, q1.values, q3.values, alpha=0.25, label="IQR (25–75%)")
+                        ax.set_xlabel(var_x)
+                        ax.set_ylabel(var_y)
+                        ax.set_title(f"Median {var_y} across {var_x} (binned)")
+                        ax.legend(frameon=False)
+                        st.pyplot(fig)
+
+
+            # =========================
+            # 2) numeric vs categorical -> boxplot
+            # =========================
+            elif x_is_cat ^ y_is_cat:
+                st.markdown("#### 📦 Numeric vs Categorical: Boxplot")
+
+                # make categorical on x-axis, numeric on y-axis
+                if x_is_cat and (not y_is_cat):
+                    cat_col, num_col = var_x, var_y
+                else:
+                    cat_col, num_col = var_y, var_x
+
+                # Convert forced-cat to string for stable ordering display
+                tmp = plot_df.copy()
+                tmp[cat_col] = tmp[cat_col].astype(str)
+
+                # Optional: if category looks numeric (Day/Period), order by numeric
+                cat_order = tmp[cat_col].unique().tolist()
+                as_num = pd.to_numeric(pd.Series(cat_order), errors="coerce")
+                if as_num.notna().all():
+                    cat_order = [x for _, x in sorted(zip(as_num.tolist(), cat_order))]
+
+                fig, ax = plt.subplots(figsize=(10, 4))
+
+                sns.boxplot(
+                    data=tmp,
+                    x=cat_col,
+                    y=num_col,
+                    order=cat_order,
+                    ax=ax,
+                    color="#4C72B0",        # ✅ ép 1 màu duy nhất
+                    linewidth=1.2,
+                    fliersize=3
+                )
+
+                ax.set_title(f"{num_col} by {cat_col}")
+                ax.set_xlabel(cat_col)
+                ax.set_ylabel(num_col)
+                plt.xticks(rotation=45, ha="right")
+
+                st.pyplot(fig)
+
+
+            # =========================
+            # 3) categorical vs categorical -> heatmap (crosstab)
+            # =========================
+            else:
+                st.markdown("#### 🔥 Categorical vs Categorical: Heatmap (Crosstab)")
+
+                tmp = plot_df.copy()
+                tmp[var_x] = tmp[var_x].astype(str)
+                tmp[var_y] = tmp[var_y].astype(str)
+
+                ct = pd.crosstab(tmp[var_x], tmp[var_y])
+
+                # optional: show % by row
+                show_pct = st.checkbox("Show as row % (normalized)", value=False, key="cc_pct")
+                data = (ct.div(ct.sum(axis=1), axis=0) * 100) if show_pct else ct
+
+                fig, ax = plt.subplots(figsize=(10, 5))
+                sns.heatmap(data, annot=False, cmap="Blues", ax=ax)
+                ax.set_title(f"{var_x} vs {var_y}" + (" (Row %)" if show_pct else " (Count)"))
+                ax.set_xlabel(var_y)
+                ax.set_ylabel(var_x)
+                st.pyplot(fig)
+
+                # show table too (useful)
+                st.dataframe(data.round(2) if show_pct else data, use_container_width=True)
 
 
                 # # optional: show table
@@ -677,8 +862,8 @@ else:
 
     # ví dụ: st.session_state["avail_df"] đã có rồi
     # =========================
-# SETTINGS KEY (FIX)
-# =========================
+    # SETTINGS KEY (FIX)
+    # =========================
 
     # ========= Convert to avail dict (this is what constraints will use) =========
     avail = {(o, d): int(edited_avail_df.loc[o, d]) for o in ops for d in days}
@@ -1026,6 +1211,7 @@ else:
         # -------------------------
         # Layout: chart LEFT, table RIGHT
         # -------------------------
+        st.divider()
         col_chart, col_table = st.columns([4, 3])
 
         # -------------------------
@@ -1134,9 +1320,9 @@ else:
             )
             st.pyplot(fig2)
 
-        #numerical vs numericl: 
-        #numerical vs categorical:
-        #categorical vs categorical:
+        #numerical vs numericl: median line plot
+        #numerical vs categorical: box plot
+        #categorical vs categorical: heatmap
 
 
 
