@@ -36,3 +36,10 @@ venv/
 
 # Mac
 .DS_Store
+*.csv
+*.xlsx
+outputs/
+audit_log*
+*.pkl
+*.joblib
+__pycache__/

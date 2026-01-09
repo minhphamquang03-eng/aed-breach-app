@@ -854,8 +854,22 @@ else:
 
     # ========= Clean / validate values (ensure int >= 0) =========
     edited_avail_df = edited_avail_df.copy()
+
+    # clean columns
+    edited_avail_df.columns = [str(c).strip() for c in edited_avail_df.columns]
+
+    # if index got lost -> force back to ops
+    edited_avail_df.index = edited_avail_df.index.astype(str)
+
+    # IMPORTANT: ensure EXACT shape ops x days
+    edited_avail_df = edited_avail_df.reindex(index=ops, columns=days).fillna(0)
+
+    # numeric clean
     edited_avail_df = edited_avail_df.apply(pd.to_numeric, errors="coerce").fillna(0)
     edited_avail_df = edited_avail_df.clip(lower=0).round(0).astype(int)
+
+
+
 
     # lưu lại
     st.session_state["avail_df"] = edited_avail_df
