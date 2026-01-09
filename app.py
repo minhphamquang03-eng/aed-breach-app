@@ -10,7 +10,7 @@ import json, hashlib
 st.set_page_config(page_title="Patient Data Manager", layout="wide")
 
 st.sidebar.title("🧭 Navigation")
-app_mode = st.sidebar.radio("Choose module", ["AED", "Optimization"], index=0)
+app_mode = st.sidebar.radio("Choose module", ["Optimization","AED"], index=0)
 
 if app_mode == "AED":
     # -------------------- DATA LOADING --------------------
