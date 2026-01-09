@@ -765,32 +765,32 @@ else:
     # 1) Base data (bạn chỉnh theo notebook của bạn)
     # -------------------------
     days = ["Mon", "Tue", "Wed", "Thu", "Fri"]
-    ops = ["EK", "YC", "AT", "RZ", "RP", "CS"]  # đổi tên theo “students/operators” của bạn
+    ops = ["E. Khan", "Y. Chen", "A. Taylor", "R. Zidane", "R. Perez", "C. Santos"]  # đổi tên theo “students/operators” của bạn
     skills = ["Programming", "Troubleshooting"]
 
     DEFAULT_SKILL_MAP = {
-        ("EK","Troubleshooting"): True, ("EK","Programming"): False,
-        ("YC","Troubleshooting"): True, ("YC","Programming"): False,
-        ("AT","Troubleshooting"): False, ("AT","Programming"): True,
-        ("RZ","Troubleshooting"): False, ("RZ","Programming"): True,
-        ("RP","Troubleshooting"): True, ("RP","Programming"): False,
-        ("CS","Troubleshooting"): True, ("CS","Programming"): True,
+        ("E. Khan","Troubleshooting"): True, ("E. Khan","Programming"): False,
+        ("Y. Chen","Troubleshooting"): True, ("Y. Chen","Programming"): False,
+        ("A. Taylor","Troubleshooting"): False, ("A. Taylor","Programming"): True,
+        ("R. Zidane","Troubleshooting"): False, ("R. Zidane","Programming"): True,
+        ("R. Perez","Troubleshooting"): True, ("R. Perez","Programming"): False,
+        ("C. Santos","Troubleshooting"): True, ("C. Santos","Programming"): True,
     }
 
     # wage per operator 
-    wage = {"EK":25, "YC":26, "AT":24, "RZ":23, "RP":28, "CS":30}
+    wage = {"E. Khan":25, "Y. Chen":26, "A. Taylor":24, "R. Zidane":23, "R. Perez":28, "C. Santos":30}
 
     # min weekly hours per operator 
-    min_week_default = {"EK":8, "YC":8, "AT":8, "RZ":8, "RP":7, "CS":7}
+    min_week_default = {"E. Khan":8, "Y. Chen":8, "A. Taylor":8, "R. Zidane":8, "R. Perez":7, "C. Santos":7}
 
     # availability of each operators
-    DEFAULT_AVAIL = {
-    ("EK","Mon"):6, ("EK","Tue"):0, ("EK","Wed"):6, ("EK","Thu"):0, ("EK","Fri"):6,
-    ("YC","Mon"):0, ("YC","Tue"):6, ("YC","Wed"):0, ("YC","Thu"):6, ("YC","Fri"):0,
-    ("AT","Mon"):4, ("AT","Tue"):8, ("AT","Wed"):4, ("AT","Thu"):0, ("AT","Fri"):4,
-    ("RZ","Mon"):5, ("RZ","Tue"):5, ("RZ","Wed"):5, ("RZ","Thu"):0, ("RZ","Fri"):5,
-    ("RP","Mon"):3, ("RP","Tue"):0, ("RP","Wed"):3, ("RP","Thu"):8, ("RP","Fri"):0,
-    ("CS","Mon"):0, ("CS","Tue"):0, ("CS","Wed"):0, ("CS","Thu"):6, ("CS","Fri"):2
+    DEFAULT_AVAIL =  {
+    ("E. Khan","Mon"):6, ("E. Khan","Tue"):0, ("E. Khan","Wed"):6, ("E. Khan","Thu"):0, ("E. Khan","Fri"):6,
+    ("Y. Chen","Mon"):0, ("Y. Chen","Tue"):6, ("Y. Chen","Wed"):0, ("Y. Chen","Thu"):6, ("Y. Chen","Fri"):0,
+    ("A. Taylor","Mon"):4, ("A. Taylor","Tue"):8, ("A. Taylor","Wed"):4, ("A. Taylor","Thu"):0, ("A. Taylor","Fri"):4,
+    ("R. Zidane","Mon"):5, ("R. Zidane","Tue"):5, ("R. Zidane","Wed"):5, ("R. Zidane","Thu"):0, ("R. Zidane","Fri"):5,
+    ("R. Perez","Mon"):3, ("R. Perez","Tue"):0, ("R. Perez","Wed"):3, ("R. Perez","Thu"):8, ("R. Perez","Fri"):0,
+    ("C. Santos","Mon"):0, ("C. Santos","Tue"):0, ("C. Santos","Wed"):0, ("C. Santos","Thu"):6, ("C. Santos","Fri"):2
 }
 
 
